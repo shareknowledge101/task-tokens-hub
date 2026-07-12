@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn Tokens - Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <nav class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-yellow-400">🪙 Task-to-Tokens Hub</h1>
+        <div class="flex space-x-6 font-medium">
+            <a href="index.html" class="hover:text-yellow-400">Dashboard</a>
+            <a href="tasks.html" class="text-yellow-400">Earn Tokens</a>
+            <a href="redeem.html" class="hover:text-yellow-400">Redeem Shop</a>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto mt-10 p-6">
+        <h2 class="text-3xl font-bold mb-6">Available Tasks</h2>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Ad Task Card -->
+            <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl flex flex-col justify-between">
+                <div>
+                    <span class="bg-blue-600 text-xs px-2 py-1 rounded-full font-bold">SPONSORED AD</span>
+                    <h3 class="text-xl font-bold mt-2">Watch Premium Video Ad Reel</h3>
+                    <p class="text-gray-400 text-sm mt-1">Interact with our video sponsor for 5 seconds to collect your token grant.</p>
+                </div>
+                <div class="mt-6 flex justify-between items-center">
+                    <span class="text-green-400 font-bold text-lg">+50 Tokens</span>
+                    <button onclick="triggerVideoAd()" class="bg-yellow-500 text-gray-900 font-bold px-4 py-2 rounded-xl hover:bg-yellow-400 transition">Launch Ad</button>
+                </div>
+            </div>
+
+            <!-- AI Generated Article Card -->
+            <div class="bg-gray-800 border border-gray-700 p-6 rounded-2xl flex flex-col justify-between">
+                <div>
+                    <span class="bg-purple-600 text-xs px-2 py-1 rounded-full font-bold">ARTICLE</span>
+                    <h3 class="text-xl font-bold mt-2">Read Tech Breakthroughs Article</h3>
+                    <p class="text-gray-400 text-sm mt-1">Scroll and read our trending tech digest to earn engagement tokens.</p>
+                </div>
+                <div class="mt-6 flex justify-between items-center">
+                    <span class="text-green-400 font-bold text-lg">+20 Tokens</span>
+                    <button onclick="loadAIArticle()" class="bg-gray-700 hover:bg-gray-600 font-bold px-4 py-2 rounded-xl transition">Read Article</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ad / Content Inject Wrapper Box -->
+        <div id="ad-wrapper" class="mt-10 p-4 bg-gray-800 border border-dashed border-gray-600 rounded-2xl hidden text-center">
+            <h4 class="text-sm text-gray-400 mb-2">Advertisements loading below:</h4>
+            <div class="flex justify-center bg-white p-4 rounded-lg min-h-[100px]" id="ad-inject-target">
+                 
+                 <!-- Your Active Live Adsterra Placement Script Integration -->
+                 <script src="https://pl30335909.effectivecpmnetwork.com/08/6e/aa/086eaa61a28eb4deb7c779d111239e85.js"></script>
+
+            </div>
+        </div>
+    </main>
+    <script src="/js/tasks.js"></script>
+</body>
+</html>

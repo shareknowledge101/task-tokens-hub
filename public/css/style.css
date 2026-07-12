@@ -1,0 +1,4 @@
+/* Custom utility rules can go here. Tailwind is fetched via CDN in our HTML files */
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+}
