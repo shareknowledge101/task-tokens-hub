@@ -17,7 +17,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api', apiRoutes);
 app.use('/auth', authRoutes);
 
-app.get('/*', (req, res) => {
+// The asterisk (*) prefix defines a wildcard named "splat"
+app.get('/*splat', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
