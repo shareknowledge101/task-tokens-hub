@@ -60,32 +60,72 @@ exports.claimReward = (req, res) => {
 };
 
 // --- 4. AI ARTICLE GENERATOR ---
+// --- 4. AI ARTICLE GENERATOR WITH AUTOMATIC FALLBACK ---
 exports.generateArticleTask = async (req, res) => {
+    const { username } = req.body;
+    const currentData = db.readDB();
+    const titles = currentData.articleTitles || ["Tech Inventions"];
+    
+    // Pick a random title from database.json
+    const randomTitle = titles[Math.floor(Math.random() * titles.length)];
+    const prompt = `Write a clean, fascinating, short tech blog post titled "${randomTitle}". Max 3 paragraphs.`;
+
+    let responseText = "";
+    let modelUsed = "";
+
     try {
-        const { username } = req.body;
-        const currentData = db.readDB();
-        const titles = currentData.articleTitles || ["Tech Inventions"];
+        // Attempt 1: Try Google's newest default model
+        modelUsed = 'gemini-3.5-flash';
+        console.log(`[AI Pipeline]: Attempting generation with ${modelUsed}...`);
         
-        // Pick a random title from database.json
-        const randomTitle = titles[Math.floor(Math.random() * titles.length)];
-
-        // Generate full response via free Gemini API
         const response = await ai.models.generateContent({
-            model: 'gemini-3.5-flash',
-            contents: `Write a clean, fascinating, short tech blog post titled "${randomTitle}". Max 3 paragraphs.`,
+            model: modelUsed, 
+            contents: prompt,
         });
+        responseText = response.text;
 
-        const articleHTML = `
-            <h2 class="text-2xl font-bold text-yellow-400 mb-4">${randomTitle}</h2>
-            <div class="text-gray-300 space-y-4 text-justify">${response.text.replace(/\n/g, '<br>')}</div>
-        `;
+    } catch (primaryError) {
+        console.warn(`[AI Pipeline Warning]: ${modelUsed} failed (likely overloaded). Shifting to fallback...`);
+        
+        try {
+            // Attempt 2: Fall back to Gemini 2.5 Flash (highly stable production model)
+            modelUsed = 'gemini-2.5-flash';
+            console.log(`[AI Pipeline Fallback]: Attempting generation with ${modelUsed}...`);
+            
+            const fallbackResponse = await ai.models.generateContent({
+                model: modelUsed,
+                contents: prompt,
+            });
+            responseText = fallbackResponse.text;
 
-        // Credit the user balance for reading
-        const newBalance = User.addTokens(username, 20);
-
-        res.json({ success: true, article: articleHTML, newBalance });
-    } catch (error) {
-        console.error("AI Generation Error:", error);
-        res.status(500).json({ error: "AI Pipeline structural error." });
+        } catch (secondaryError) {
+            console.warn(`[AI Pipeline Warning]: ${modelUsed} failed. Shifting to ultra-cheap lite fallback...`);
+            
+            try {
+                // Attempt 3: Fall back to Gemini 3.1 Flash-Lite (extremely high rate limit / low traffic)
+                modelUsed = 'gemini-3.1-flash-lite';
+                const finalResponse = await ai.models.generateContent({
+                    model: modelUsed,
+                    contents: prompt,
+                });
+                responseText = finalResponse.text;
+                
+            } catch (fatalError) {
+                console.error("All AI generation pathways exhausted:", fatalError);
+                return res.status(500).json({ error: "All AI generation models are currently overloaded. Please try again in a moment." });
+            }
+        }
     }
+
+    // Wrap the successfully generated text into clean HTML layout
+    const articleHTML = `
+        <h2 class="text-2xl font-bold text-yellow-400 mb-4">${randomTitle}</h2>
+        <p class="text-xs text-gray-500 mb-2 italic">Generated via ${modelUsed}</p>
+        <div class="text-gray-300 space-y-4 text-justify">${responseText.replace(/\n/g, '<br>')}</div>
+    `;
+
+    // Credit the user balance for reading
+    const newBalance = User.addTokens(username, 20);
+
+    res.json({ success: true, article: articleHTML, newBalance });
 };
