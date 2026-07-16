@@ -25,34 +25,43 @@ function triggerVideoAd() {
     })
     .then(res => res.json())
     .then(sessionData => {
-        if (!sessionData.success) {
+        // Ensure the backend returned a successful session and dynamic token key
+        if (!sessionData.success || !sessionData.sessionId) {
             launchBtn.disabled = false;
             launchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             return alert("Session initialization failed.");
         }
 
-        // 5. IFRAME SANDBOX WORKAROUND (Guarantees the ad script loads and renders correctly)
-        const iframe = document.createElement('iframe');
-        iframe.style.width = "100%";
-        iframe.style.height = "250px"; // Adjust height based on your Adsterra ad format
-        iframe.style.border = "none";
-        iframe.style.overflow = "hidden";
+        // Keep a secure reference to the sessionId
+        const activeSessionId = sessionData.sessionId;
+
+        // 5. Build dynamic Adsterra configurations so the script renders
+        const adScriptConfig = document.createElement('script');
+        adScriptConfig.type = 'text/javascript';
+        adScriptConfig.innerHTML = `
+            atOptions = {
+                'key' : '086eaa61a28eb4deb7c779d111239e85',
+                'format' : 'iframe',
+                'height' : 250,
+                'width' : 300,
+                'params' : {}
+            };
+        `;
+        adInjectTarget.appendChild(adScriptConfig);
+
+        // 6. Inject the main Adsterra script execution file
+        const adScript = document.createElement('script');
+        adScript.type = 'text/javascript';
+        adScript.src = 'https://pl30335909.effectivecpmnetwork.com/08/6e/aa/086eaa61a28eb4deb7c779d111239e85.js';
+        adScript.async = true;
         
-        adInjectTarget.appendChild(iframe);
+        adScript.onerror = () => {
+            console.error("Adblock detected or network failure.");
+            adInjectTarget.innerHTML = `<p class="text-red-500 font-bold p-4">Please disable your AdBlocker to view ads and earn tokens.</p>`;
+        };
+        adInjectTarget.appendChild(adScript);
 
-        // Inject the ad script inside the iframe's clean document window
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-        iframeDoc.open();
-        iframeDoc.write(`
-            <html>
-            <body style="margin:0; padding:0; display:flex; justify-content:center; align-items:center; background-color:transparent;">
-                <script type="text/javascript" src="https://pl30335909.effectivecpmnetwork.com/08/6e/aa/086eaa61a28eb4deb7c779d111239e85.js"></script>
-            </body>
-            </html>
-        `);
-        iframeDoc.close();
-
-        // 6. Start the Countdown Timer
+        // 7. Start the Countdown Timer
         let timeLeft = 5;
         launchBtn.innerText = `Watching Ad (${timeLeft}s)...`;
 
@@ -64,14 +73,14 @@ function triggerVideoAd() {
                 clearInterval(countdown);
                 launchBtn.innerText = "Claiming reward...";
 
-                // Claim reward using secure session id
+                // 8. Secure reward claiming with correct payload matching server expectations
                 fetch('/api/reward', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         username: username, 
-                        amount: 50, 
-                        sessionId: sessionData.sessionId 
+                        taskName: "Video Ad", // Ensure parameters match back-end validator rules
+                        sessionId: activeSessionId 
                     })
                 })
                 .then(res => res.json())
@@ -80,13 +89,18 @@ function triggerVideoAd() {
                     launchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                     launchBtn.innerText = "Launch Ad";
                     
-                    if (data.error) {
-                        alert(data.error);
+                    if (data.error || !data.success) {
+                        alert(data.error || "Failed to claim reward.");
                     } else {
                         alert(`🎉 Success! Credited. Your balance is now: ${data.newBalance} Tokens.`);
                     }
                 })
-                .catch(err => console.error("Error securing reward stream:", err));
+                .catch(err => {
+                    console.error("Error securing reward stream:", err);
+                    launchBtn.disabled = false;
+                    launchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    launchBtn.innerText = "Launch Ad";
+                });
             }
         }, 1000);
     })
