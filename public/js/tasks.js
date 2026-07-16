@@ -7,14 +7,14 @@ function triggerVideoAd() {
     
     if (!adBox || !launchBtn || !adInjectTarget) return;
 
-    // 1. Clear any previous ad elements so they don't pile up
+    // 1. Clear any previous ad contents
     adInjectTarget.innerHTML = '';
 
     // 2. Disable the button and show loading state
     launchBtn.disabled = true;
     launchBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-    // 3. Show the ad wrapper so it has physical space in the layout
+    // 3. Show the ad wrapper
     adBox.classList.remove('hidden');
 
     // 4. Initialize backend validation session
@@ -31,21 +31,28 @@ function triggerVideoAd() {
             return alert("Session initialization failed.");
         }
 
-        // 5. DYNAMIC SCRIPT INJECTION (Forces browser to evaluate and load the ad block)
-        const adScript = document.createElement('script');
-        adScript.type = 'text/javascript';
-        adScript.src = 'https://pl30335909.effectivecpmnetwork.com/08/6e/aa/086eaa61a28eb4deb7c779d111239e85.js';
-        adScript.async = true;
+        // 5. IFRAME SANDBOX WORKAROUND (Guarantees the ad script loads and renders correctly)
+        const iframe = document.createElement('iframe');
+        iframe.style.width = "100%";
+        iframe.style.height = "250px"; // Adjust height based on your Adsterra ad format
+        iframe.style.border = "none";
+        iframe.style.overflow = "hidden";
         
-        // Handle error gracefully if adblocker blocks the script
-        adScript.onerror = () => {
-            console.error("Ad block failed to load. Likely blocked by an extension.");
-            adInjectTarget.innerHTML = `<p class="text-red-500 font-bold self-center">Disable your AdBlocker to view this ad and earn rewards.</p>`;
-        };
+        adInjectTarget.appendChild(iframe);
 
-        adInjectTarget.appendChild(adScript);
+        // Inject the ad script inside the iframe's clean document window
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        iframeDoc.open();
+        iframeDoc.write(`
+            <html>
+            <body style="margin:0; padding:0; display:flex; justify-content:center; align-items:center; background-color:transparent;">
+                <script type="text/javascript" src="https://pl30335909.effectivecpmnetwork.com/08/6e/aa/086eaa61a28eb4deb7c779d111239e85.js"></script>
+            </body>
+            </html>
+        `);
+        iframeDoc.close();
 
-        // 6. Countdown Timer
+        // 6. Start the Countdown Timer
         let timeLeft = 5;
         launchBtn.innerText = `Watching Ad (${timeLeft}s)...`;
 
