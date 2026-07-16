@@ -73,13 +73,13 @@ function triggerVideoAd() {
                 clearInterval(countdown);
                 launchBtn.innerText = "Claiming reward...";
 
-                // 8. Secure reward claiming with correct payload matching server expectations
+                // 8. Secure reward claiming (Sending amount: 50 to satisfy the backend validation)
                 fetch('/api/reward', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         username: username, 
-                        taskName: "Video Ad", // Ensure parameters match back-end validator rules
+                        amount: 50, // This satisfies backend validation requirement
                         sessionId: activeSessionId 
                     })
                 })
