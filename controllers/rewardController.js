@@ -71,7 +71,7 @@ exports.generateArticleTask = async (req, res) => {
 
         // Generate full response via free Gemini API
         const response = await ai.models.generateContent({
-            model: 'gemini-3-flash',
+            model: 'gemini-2.5-flash',
             contents: `Write a clean, fascinating, short tech blog post titled "${randomTitle}". Max 3 paragraphs.`,
         });
 
