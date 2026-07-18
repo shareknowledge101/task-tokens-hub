@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const apiRoutes = require('./routes/api');
 const authRoutes = require('./routes/auth');
-
+const postbackController = require('./controllers/postbackController');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -25,3 +25,9 @@ app.get('/*splat', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Hub Architecture running cleanly at http://localhost:${PORT}`);
 });
+
+// Route for frontend to fetch the tracked ad link
+app.post('/api/get-ad-link', postbackController.generateAdLink);
+
+// Route for Adsterra to call when a conversion is approved
+app.get('/api/adsterra-postback', postbackController.handleAdsterraPostback);
